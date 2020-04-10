@@ -161,7 +161,7 @@ vector<Token> Analyseur::analyser(const string filename){
 
 
 int main(){
-    // on extrait une liste de fichier a tester avec
+    // on extrait une liste des fichiers qu'on vas tester avec
     string item;
     vector<string> fileList;
     ifstream ff("/home/ahmed2/Desktop/cpp/mp/fileList.txt");
@@ -175,7 +175,8 @@ int main(){
     }
     cout<<"Finished analyzing!"<<endl;
     string searchWord="pizza";
-    // l'utilisateur peut rechercher
+    
+    // l'utilisateur peut maintenant rechercher
     while(true) {
     cout<<"Enter a word to search : ";
     cin>>searchWord;
