@@ -2,9 +2,9 @@
 #include "analyseur.cpp"
 using namespace std;
 int main(int argc, char** argv){
-    // argv[2] = repertoire corpus
-    // argv[1] = fichier(ls repertoire corpus)
-    if(argc>3)
+    // argv[1] = $pwd
+    // argv[2] = chemin corpus
+    if(argc!=3)
         return 1;
     // on extrait une liste de fichier a tester avec
     string filename;
