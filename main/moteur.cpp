@@ -26,50 +26,28 @@ string Word::getWord() const {return word;}
 Request::Request(const vector<Occ>& v,const int& t){request=v;total=t;}
 Request::~Request(){}
 int Request::size() const {return request.size();}
+vector<Occ>& Request::getReq(){return request;}
+void Request::trier(){
+    sort(request.begin(),request.end(),[](const Occ& O1,const Occ& O2){return O1.getStat()>O2.getStat();});
+}
 
 //Index
-Index::Index(){}
-Index::~Index(){}
-int Index::size() const {return dict.size();}
-Request Index::searc(const string& chaine,const int& max_) const {
-    vector<Occ> result;
-    string request=lower(chaine);
-    for(pair<string,vector<Occ> > entry : dict)
-        if(entry.first==request){
-            result=entry.second;
-            break;
-        }
-    sort(result.begin(),result.end(),[](const Occ& O1,const Occ& O2){return O1.getStat()>O2.getStat();});
-    int total=result.size();
-    while(result.size()>max_)
-        result.pop_back();
-    return Request(result,total);
-}
-void Index::add(const vector<Token>& tokens,const string& filename){
+IndexUnorderedMap::IndexUnorderedMap(){}
+IndexUnorderedMap::~IndexUnorderedMap(){}
+int IndexUnorderedMap::size() const {return dict.size();}
+vector<Occ> IndexUnorderedMap::operator[](const string& s){return dict[s];}
+void IndexUnorderedMap::indexer(const vector<Token>& tokens,const string& filename){
     for(auto& token : tokens)
     dict[token.getWord()].push_back(Occ(filename,token.getOcc()));
 }
 
 //Analyseur
-Analyseur::Analyseur(const int& max){MAX_N=max;}
-Analyseur::Analyseur(const vector<string>& fileList,const int& max){
-    MAX_N=max;
-    for(string file :fileList){
-        vector<Token> words=analyser(file);
-        indexer(words,file);
-    }
-}
+Analyseur::Analyseur(){}
 Analyseur::~Analyseur(){}
-int Analyseur::indexSize() const {return index.size();}
-int Analyseur::size() const {return size_;}
-void Analyseur::indexer(const vector<Token>& tokens,const string& filename) {index.add(tokens,filename); size_++;}
-Request Analyseur::rechercher(const string& request){return index.searc(request,MAX_N);}
-vector<Token> Analyseur::analyser(const string& filename){
-    string word;
+vector<Token> Analyseur::analyser(const vector<string>& text){
     vector<Token> tokens;
-    ifstream file(filename);
     bool exists;
-    while( file >> word ){
+    for(string word : text){
         word=lower(word);
         exists=false;
         for(int i=0;i<tokens.size();i++){
@@ -84,6 +62,31 @@ vector<Token> Analyseur::analyser(const string& filename){
     return tokens;
 }
 
+//Lecteur
+vector<string> Lecteur::readFile(const string& chemin){
+    ifstream file(chemin);
+    vector<string> text;
+    string word;
+    while( file >> word )
+        text.push_back(word);
+    return text;
+}
+
+
+//Moteur
+template<class Index> Moteur<Index>::Moteur(){}
+template<class Index> Moteur<Index>::~Moteur(){}
+template<class Index> Request Moteur<Index>::rechercher(const vector<string>& request){
+    vector<Request> results;
+    for(string& searchWord : request){
+        searchWord=lower(searchWord);
+        results.push_back(Request(index[searchWord]));
+        results.back().trier();
+    }
+    return results;
+}
+
+
 
 //ostream
 ostream& operator<<(ostream& out,const Request& request){
@@ -91,7 +94,7 @@ ostream& operator<<(ostream& out,const Request& request){
         out<<item.getStat()<<" "<<item.getDoc()<<endl;
     return out;
 }
-ostream& operator<<(ostream& out,const Index& index){
+ostream& operator<<(ostream& out,const IndexUnorderedMap& index){
     for(pair<string,vector<Occ> > entry : index.dict){
         out<<entry.first<<endl;
         for(Occ word :entry.second)
@@ -101,4 +104,5 @@ ostream& operator<<(ostream& out,const Index& index){
     }
     return out;
 }
+
 #endif
