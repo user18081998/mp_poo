@@ -1,7 +1,7 @@
-#ifndef ANALYSEUR_CPP
-#define ANALYSEUR_CPP
+#ifndef MOTEUR_CPP
+#define MOTEUR_CPP
 
-#include "analyseur.h"
+#include "moteur.h"
 using namespace std;
 inline string lower(const string& word){string word1;for(char c : word) word1.push_back(tolower(c));return word1; };
 
