@@ -76,9 +76,9 @@ vector<string> Lecteur::readFile(const string& chemin){
 //Moteur
 template<class Index> Moteur<Index>::Moteur(){}
 template<class Index> Moteur<Index>::~Moteur(){}
-template<class Index> Request Moteur<Index>::rechercher(const vector<string>& request){
+template<class Index> vector<Request> Moteur<Index>::rechercher(const vector<string>& request){
     vector<Request> results;
-    for(string& searchWord : request){
+    for(string searchWord : request){
         searchWord=lower(searchWord);
         results.push_back(Request(index[searchWord]));
         results.back().trier();
