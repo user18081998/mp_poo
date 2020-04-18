@@ -88,7 +88,7 @@ template<class Index> class Moteur{
     Index index;
     Analyseur analyseur;
     Lecteur lecteur;
-    Request rechercher(const vector<string>& request);
+    vector<Request> rechercher(const vector<string>& request);
 
 };
 #endif
