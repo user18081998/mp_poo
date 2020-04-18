@@ -59,8 +59,7 @@ class Index{
 
     int size() const ; //nombre de mots indexes
 
-    Request searc(const string& request,const int& max_) const; // cherche un mot dans dict avec max_ le nombre maximal de resultats
-    void add(const vector<Token>& tokens,const string& filename); // ajout dans l'index
+    void indexer(const vector<Token>& tokens,const string& filename); // ajout dans l'index
 
     friend ostream& operator<<(ostream& out,const Index& index);
 };
@@ -83,7 +82,24 @@ class Analyseur{
     int size() const ; //nombre de fichiers 
     int indexSize() const ; //nombre de mots
 
-    void indexer(const vector<Token>& tokens,const string& filename);
-    Request rechercher(const string& request);
+    
+};
+class Lecteur{
+    public :
+    vector<string> readFile(const string& chemin);
+};
+class Ordonnanceur{
+    public:
+    void trier(const Request& request);
+};
+class Moteur{
+    Index index;
+    Analyseur analyseur;
+    Lecteur lecteur;
+    Ordonnanceur ordonnanceur;
+    public :
+    Request rechercher(const vector<string>& request);
+    void indexer(const vector<Token>& tokens,const string& chemin); 
+    // == index.indexer(const vector<Token>& tokens,const string& chemin)
 };
 #endif
