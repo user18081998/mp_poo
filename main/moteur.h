@@ -1,5 +1,5 @@
-#ifndef ANALYSEUR_H
-#define ANALYSEUR_H
+#ifndef MOTEUR_H
+#define MOTEUR_H
 
 #include<iostream>
 #include<fstream>
