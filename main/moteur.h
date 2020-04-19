@@ -3,25 +3,26 @@
 
 #include<iostream>
 #include<fstream>
+#include<map>
 #include<unordered_map>
 #include<vector>
 #include<algorithm>
 #include<string>
+#include<set>
+#include<cmath>
 
 using namespace std;
 
 class Token{
-    /* les tokens servent a traiter les donnees brutes
-       et les convertir en des structures avec lesquelles
-       on peut travailler */
     string word;
-    int occ;
+    float occ;
     public:
-    Token(const string& w,const int s=1);
+    Token(const string& w,const float s=1);
     ~Token();
     void increment();
     string getWord() const;
-    int getOcc() const;
+    float getOcc() const;
+    void setOcc(const float occ);
 };
 class Occ{
     string doc;
@@ -32,58 +33,107 @@ class Occ{
         
     float getStat() const;
     string getDoc() const;
+    friend bool operator<(const Occ& O1,const Occ& O2);
+    friend bool operator>(const Occ& O1,const Occ& O2);
+    
 };
-class Word{
-    string word;
-    public:
-    Word(const string& s);
-    string getWord() const;
-};
-class Request{
-    vector<Occ> request;
+class Recherche{
+    vector<Occ> recherche;
+    int MAX_N;
     public :
-    Request(const vector<Occ>& v,const int& t=0);
-    ~Request();
+    Recherche(const vector<Occ>& v,const int& t=5);
+    ~Recherche();
+    void trier();
+    void trierIDF();
 
-    int total; // nombre total de resultats
     int size() const ; // nombre reel de resultats (size<=total comme on a une contrainte sur le nombre de resultats : MAX_N nombre total de resultats a afficher, voir class analyseur, voir index.searc)
 
-    friend ostream& operator<<(ostream& out,const Request& request);
+    vector<Occ>& getReq();
+
+    friend ostream& operator<<(ostream& out,const Recherche& recherche);
 };
-class Index{
+
+class Index_{
+    public :
+    virtual int size() const =0;
+    virtual int getNumberOfDocuments() const=0;
+    virtual void indexer(const vector<Token>& tokens,const string& filename) =0;
+    virtual vector<Occ> operator[](const string& s) =0;
+};
+class IndexUnorderedMap : public Index_ {
     unordered_map<string, vector<Occ> > dict;
-
+    int numberOfDocuments=0;
     public:
-    Index();
-    ~Index();
-
-    int size() const ; //nombre de mots indexes
-
-    Request searc(const string& request,const int& max_) const; // cherche un mot dans dict avec max_ le nombre maximal de resultats
-    void add(const vector<Token>& tokens,const string& filename); // ajout dans l'index
-
-    friend ostream& operator<<(ostream& out,const Index& index);
-};
-class Analyseur{
-    Index index;
-    int MAX_N; // nombre maximum de resultats pour les requetes que l'analyseur affiche 
-    int size_; // nombre de fichiers dans l'analyseur
-    vector<Token> analyser(const string& filename);
-        /* analyser est une fonction qui accepte le nom d'un fichier
-       elle doit retourner un vecteur de tokens qu'on degage du fichier
-       un token est le pair {mot,n} 
-       avec n le nombre d'occurences du mot dans le fichier */
-    
-    public:
-    Analyseur(const int& max=5);
-    Analyseur(const vector<string>& fileList,const int& max=5);
-    ~Analyseur();
-    
-    // la seule "raison d'etre" de ces deux methodes est d'afficher des statistiques concernant l'analyseur
-    int size() const ; //nombre de fichiers 
-    int indexSize() const ; //nombre de mots
-
+    IndexUnorderedMap();
+    ~IndexUnorderedMap();
+    int size() const ;
+    int getNumberOfDocuments() const ;
     void indexer(const vector<Token>& tokens,const string& filename);
-    Request rechercher(const string& request);
+    vector<Occ> operator[](const string& s);
+
+    friend ostream& operator<<(ostream& out,const IndexUnorderedMap& index);
+};
+class IndexSet : public Index_ {
+    set<pair<string,vector<Occ> > > dict;
+    int numberOfDocuments=0;
+    public:
+    IndexSet();
+    ~IndexSet();
+    int size() const;
+    int getNumberOfDocuments() const ;
+    void indexer(const vector<Token>& tokens,const string& filename);
+    vector<Occ> operator[](const string& s);
+};
+class IndexMap : public Index_{
+    map<string,vector<Occ> > dict;
+    int numberOfDocuments=0;
+    public:
+    IndexMap();
+    ~IndexMap();
+    int size() const;
+    int getNumberOfDocuments() const;
+    void indexer(const vector<Token>& tokens,const string& filename);
+    vector<Occ> operator[](const string& s);
+};
+
+
+class Analyseur_{
+    virtual vector<Token> analyser(const vector<string>& text) =0;
+};
+class AnalyseurBinary : public Analyseur_{
+    AnalyseurBinary();
+    ~AnalyseurBinary();
+
+    vector<Token> analyser(const vector<string>& text);    
+};
+class AnalyseurWF : public Analyseur_{ // word frquency
+    public:
+    AnalyseurWF();
+    ~AnalyseurWF();
+
+    vector<Token> analyser(const vector<string>& text);
+};
+class AnalyseurATF : public Analyseur_{ // augmented term frequency
+    public:
+    AnalyseurATF();
+    ~AnalyseurATF();
+
+    vector<Token> analyser(const vector<string>& text);
+};
+
+class Lecteur{
+    public :
+    vector<string> readFile(const string& chemin);
+};
+
+template<class Index,class Analyseur> class Moteur{
+    int MAX_N;
+    public :
+    Moteur(const int m=5);
+    ~Moteur();
+    Index index;
+    Analyseur analyseur;
+    Lecteur lecteur;
+    vector<Recherche> rechercher(const vector<string>& recherche);
 };
 #endif
