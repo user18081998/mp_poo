@@ -18,6 +18,7 @@ Occ::Occ(const string& d,const float& s){doc=d;stat=s;}
 Occ::~Occ(){}
 float Occ::getStat() const {return stat;}
 string Occ::getDoc() const {return doc;}
+void Occ::setStat(const float& value) {stat=value;}
 bool operator<(const Occ& O1,const Occ& O2){return O1.getStat()<O2.getStat();}
 bool operator>(const Occ& O1,const Occ& O2){return O1.getStat()>O2.getStat();}
 
@@ -31,11 +32,29 @@ void Recherche::trier(){
     while(recherche.size()>MAX_N)
         recherche.pop_back();
 }
+void Recherche::updateWithIDF(const int& numberOfDocuments){ 
+    // im going to adapt the standard notations the ones i found on wikipedia
+    int N=numberOfDocuments;
+    float nt=size();
+    float idf=log((N-nt)/nt); // probabilistic inverse document frequency
+    // float idf=log(N/(1+nt))+1; // inverse document frequency
+    for(auto& entry : recherche)
+        entry.setStat(entry.getStat()*idf);
+}
 
 //Index
 // unordered_map
 IndexUnorderedMap::IndexUnorderedMap(){}
+IndexUnorderedMap::IndexUnorderedMap(const unordered_map<string, vector<Occ> >& s, const int& n){
+    dict=s;
+    numberOfDocuments=n;
+}
 IndexUnorderedMap::~IndexUnorderedMap(){}
+IndexUnorderedMap& IndexUnorderedMap::operator=(const IndexUnorderedMap& index){
+    dict=index.dict;
+    numberOfDocuments=index.numberOfDocuments;
+    return *this;
+}
 int IndexUnorderedMap::size() const {return dict.size();}
 int IndexUnorderedMap::getNumberOfDocuments() const {return numberOfDocuments;}
 vector<Occ> IndexUnorderedMap::operator[](const string& s){return dict[s];}
@@ -48,6 +67,10 @@ void IndexUnorderedMap::indexer(const vector<Token>& tokens,const string& filena
 
 //map
 IndexMap::IndexMap(){}
+IndexMap::IndexMap(const map<string,vector<Occ> > s, const int& n){
+    dict=s;
+    numberOfDocuments=n;
+}
 IndexMap::~IndexMap(){}
 int IndexMap::size() const {return dict.size();}
 int IndexMap::getNumberOfDocuments() const {return numberOfDocuments;}
@@ -60,6 +83,10 @@ void IndexMap::indexer(const vector<Token>& tokens,const string& filename){
 
 //set
 IndexSet::IndexSet(){}
+IndexSet::IndexSet(const set<pair<string,vector<Occ> > >& s, const int& n){
+    dict=s;
+    numberOfDocuments=n;
+}
 IndexSet::~IndexSet(){}
 int IndexSet::size() const {return dict.size();}
 int IndexSet::getNumberOfDocuments() const {return numberOfDocuments;}
@@ -140,6 +167,68 @@ vector<string> Lecteur::readFile(const string& chemin){
         text.push_back(word);
     return text;
 }
+template<class Dict>
+pair<Dict,int> Lecteur::importIndex(const string& chemin){
+    ifstream file(chemin);
+    string read;
+    file>>read;
+    file>>read;
+    int numberOfDocuments;
+    file>>numberOfDocuments;
+
+    string word;
+    string doc;
+    int statistique;
+    int state=1;
+    
+    Dict dict;
+    while(file>>read) switch(state){
+        case 1 : {
+            word=read;
+            state++;
+            break;
+        }
+        case 2 : {
+            if(read=="|")
+                state++;
+            else
+                state=1;
+            break;
+        }
+        case 3 : {
+            doc=read;
+            state++;
+            break;
+        }
+        case 4 : {
+            statistique=stoi(read);
+            dict[word].push_back(Occ(doc,statistique));
+            state++;
+            break;
+        }
+        case 5 : {
+            if(read=="|")
+                state=3;
+            if(read=="}")
+                state=1;
+            break;
+        }
+    }
+    return pair<Dict,int>(dict,numberOfDocuments);
+}
+void Lecteur::ExportIndex(const IndexUnorderedMap& index,const string& chemin){
+    ofstream out(chemin);
+    out<<"IndexUnorderedMap"<<endl;
+    out<<index.numberOfDocuments<<endl;
+    for(auto entry : index.dict){
+        if(entry.second.size()>0){
+        out<<entry.first;
+        for(Occ occ : entry.second)
+            out<<" | "<<occ.getDoc()<<" "<<occ.getStat();
+        out<<" }"<<endl;
+        }
+    }
+}
 
 //Moteur
 template<class I,class A> Moteur<I,A>::Moteur(const int m){MAX_N=5;}
@@ -149,6 +238,7 @@ template<class I,class A> vector<Recherche> Moteur<I,A>::rechercher(const vector
     for(string searchWord : recherche){
         searchWord=lower(searchWord);
         results.push_back(Recherche(index[searchWord]));
+        results.back().updateWithIDF(index.getNumberOfDocuments());
         results.back().trier();
     }
     return results;
