@@ -104,7 +104,6 @@ IndexSet::IndexSet(const set<pair<string,vector<Occ> > >& s, const int& n){
     numberOfDocuments=n;
     type="IndexSet";
 }
-
 IndexSet::~IndexSet(){}
 int IndexSet::size() const {return dict.size();}
 int IndexSet::getNumberOfDocuments() const {return numberOfDocuments;}
@@ -112,7 +111,7 @@ int IndexSet::setNumberOfDocuments(const int& i){numberOfDocuments=i;}
 void IndexSet::setDict(const unordered_map<string, vector<Occ> >& d){
     set<pair<string,vector<Occ> > > newDict;
     for(auto& entry: d) 
-        newDict.insert(make_pair(entry.first,entry.second));
+        newDict.insert(entry);
     dict=newDict;
 }
 vector<Occ> IndexSet::operator[](const string& s){
@@ -268,16 +267,13 @@ void Lecteur::importIndex(Index_* index,const string& chemin){
     
     return ;
 }
-
-
 void Lecteur::exportIndex(Index_* index,const string& chemin){
     ofstream fo(chemin);
     string indexType=index->type;
     if(indexType=="IndexUnorderedMap") fo << *dynamic_cast<IndexUnorderedMap*>(index);
     else if(indexType=="IndexMap") fo << *dynamic_cast<IndexMap*>(index);
-    else if(indexType=="IndexUnorderedMap") fo << *dynamic_cast<IndexSet*>(index);
+    else if(indexType=="IndexSet") fo << *dynamic_cast<IndexSet*>(index);
 }
-
 void Lecteur::exportMoteur(Moteur* moteur,const string& chemin){
     ofstream fo(chemin);
     string typeIndex=moteur->index->type;
@@ -286,9 +282,31 @@ void Lecteur::exportMoteur(Moteur* moteur,const string& chemin){
     fo<<typeIndex<<endl<<typeAnalyseur<<endl;
     if(typeIndex=="IndexUnorderedMap") fo << *dynamic_cast<IndexUnorderedMap*>(moteur->index);
     else if(typeIndex=="IndexMap") fo << *dynamic_cast<IndexMap*>(moteur->index);
-    else if(typeIndex=="IndexUnorderedMap") fo << *dynamic_cast<IndexSet*>(moteur->index);
+    else if(typeIndex=="IndexSet") fo << *dynamic_cast<IndexSet*>(moteur->index);
 
     fo.close();
+}
+vector<string> Lecteur::parseQuery(const string& query){
+    vector<string> vquery;
+    string word;
+    int i=query.size();
+    if(i==0) return vquery;
+    for(auto& c : query){
+        if(c==' '){
+            vquery.push_back(word);
+            word="";
+        }
+        else if(i==1){
+            word.push_back(c);
+            vquery.push_back(word);
+            word="";
+        }
+        else if(c=='"') ;
+        else
+            word.push_back(c);
+        i--;
+    }
+    return vquery;
 }
 
 //stream
@@ -313,7 +331,7 @@ ofstream& operator<<(ofstream& out,const IndexUnorderedMap& index){
     for(auto& entry : index.dict)
         if(entry.second.size()>0){
         out<<entry.first;
-        for(Occ occ : entry.second) 
+        for(auto& occ : entry.second) 
             out<<" | "<<occ.getDoc()<<" "<<occ.getStat();
         out<<" }"<<endl;
         }
@@ -324,7 +342,7 @@ ofstream& operator<<(ofstream& out,const IndexMap& index){
     for(auto& entry : index.dict)
         if(entry.second.size()>0){
         out<<entry.first;
-        for(Occ occ : entry.second) 
+        for(auto& occ : entry.second) 
             out<<" | "<<occ.getDoc()<<" "<<occ.getStat();
         out<<" }"<<endl;
         }

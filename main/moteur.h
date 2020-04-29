@@ -171,6 +171,7 @@ class Lecteur{
     // void exportIndex(Index_* index,const string& chemin);
     void exportIndex(Index_* index,const string& chemin);
     void exportMoteur(Moteur* moteur,const string& chemin);
+    vector<string> parseQuery(const string& query);
 };
 /*
 template<class Index,class Analyseur> class Moteur{
