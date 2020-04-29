@@ -2,6 +2,7 @@
 #define MOTEUR_CPP
 
 #include "moteur.h"
+
 using namespace std;
 inline string lower(const string& word){string word1;for(char c : word) word1.push_back(tolower(c));return word1; };
 
@@ -43,11 +44,16 @@ void Recherche::updateWithIDF(const int& numberOfDocuments){
 }
 
 //Index
+Index_::~Index_(){}
 // unordered_map
-IndexUnorderedMap::IndexUnorderedMap(){}
+IndexUnorderedMap::IndexUnorderedMap(){
+    numberOfDocuments=0;
+    type="IndexUnorderedMap";
+}
 IndexUnorderedMap::IndexUnorderedMap(const unordered_map<string, vector<Occ> >& s, const int& n){
     dict=s;
     numberOfDocuments=n;
+    type="IndexUnorderedMap";
 }
 IndexUnorderedMap::~IndexUnorderedMap(){}
 IndexUnorderedMap& IndexUnorderedMap::operator=(const IndexUnorderedMap& index){
@@ -57,6 +63,8 @@ IndexUnorderedMap& IndexUnorderedMap::operator=(const IndexUnorderedMap& index){
 }
 int IndexUnorderedMap::size() const {return dict.size();}
 int IndexUnorderedMap::getNumberOfDocuments() const {return numberOfDocuments;}
+int IndexUnorderedMap::setNumberOfDocuments(const int& i){numberOfDocuments=i;}
+void IndexUnorderedMap::setDict(const unordered_map<string, vector<Occ> >& d){dict=d;}
 vector<Occ> IndexUnorderedMap::operator[](const string& s){return dict[s];}
 void IndexUnorderedMap::indexer(const vector<Token>& tokens,const string& filename){
     for(auto& token : tokens){
@@ -66,14 +74,22 @@ void IndexUnorderedMap::indexer(const vector<Token>& tokens,const string& filena
 }
 
 //map
-IndexMap::IndexMap(){}
+IndexMap::IndexMap(){type="IndexMap";numberOfDocuments=0;}
 IndexMap::IndexMap(const map<string,vector<Occ> > s, const int& n){
     dict=s;
     numberOfDocuments=n;
+    type="IndexMap";
 }
 IndexMap::~IndexMap(){}
 int IndexMap::size() const {return dict.size();}
 int IndexMap::getNumberOfDocuments() const {return numberOfDocuments;}
+int IndexMap::setNumberOfDocuments(const int& i){numberOfDocuments=i;}
+void IndexMap::setDict(const unordered_map<string, vector<Occ> >& d){
+    map<string,vector<Occ> > newDict;
+    for(auto& entry : d)
+        newDict[entry.first]=entry.second;
+    dict=newDict;
+}
 vector<Occ> IndexMap::operator[](const string& s){return dict[s];}
 void IndexMap::indexer(const vector<Token>& tokens,const string& filename){
     for(auto& token : tokens)
@@ -82,14 +98,23 @@ void IndexMap::indexer(const vector<Token>& tokens,const string& filename){
 }
 
 //set
-IndexSet::IndexSet(){}
+IndexSet::IndexSet(){type="IndexSet";numberOfDocuments=0;}
 IndexSet::IndexSet(const set<pair<string,vector<Occ> > >& s, const int& n){
     dict=s;
     numberOfDocuments=n;
+    type="IndexSet";
 }
+
 IndexSet::~IndexSet(){}
 int IndexSet::size() const {return dict.size();}
 int IndexSet::getNumberOfDocuments() const {return numberOfDocuments;}
+int IndexSet::setNumberOfDocuments(const int& i){numberOfDocuments=i;}
+void IndexSet::setDict(const unordered_map<string, vector<Occ> >& d){
+    set<pair<string,vector<Occ> > > newDict;
+    for(auto& entry: d) 
+        newDict.insert(make_pair(entry.first,entry.second));
+    dict=newDict;
+}
 vector<Occ> IndexSet::operator[](const string& s){
     for(auto& element : dict){
         if(element.first==s)
@@ -112,7 +137,7 @@ void IndexSet::indexer(const vector<Token>& tokens,const string& filename){
 
 //Analyseur
 // word frquency
-AnalyseurWF::AnalyseurWF(){}
+AnalyseurWF::AnalyseurWF(){type="AnalyseurWF";}
 AnalyseurWF::~AnalyseurWF(){}
 vector<Token> AnalyseurWF::analyser(const vector<string>& text){
     vector<Token> tokens;
@@ -132,7 +157,7 @@ vector<Token> AnalyseurWF::analyser(const vector<string>& text){
     return tokens;
 }
 // binary
-AnalyseurBinary::AnalyseurBinary(){}
+AnalyseurBinary::AnalyseurBinary(){type="AnalyseurBinary";}
 AnalyseurBinary::~AnalyseurBinary(){}
 vector<Token> AnalyseurBinary::analyser(const vector<string>& text){
     vector<Token> tokens;
@@ -143,7 +168,7 @@ vector<Token> AnalyseurBinary::analyser(const vector<string>& text){
         tokens.push_back(Token(word.first,word.second));
 }
 // augmented term frequency
-AnalyseurATF::AnalyseurATF(){}
+AnalyseurATF::AnalyseurATF(){type="AnalyseurATF";}
 AnalyseurATF::~AnalyseurATF(){}
 vector<Token> AnalyseurATF::analyser(const vector<string>& text){
     AnalyseurWF analyseurwf;
@@ -167,21 +192,46 @@ vector<string> Lecteur::readFile(const string& chemin){
         text.push_back(word);
     return text;
 }
-template<class Dict>
-pair<Dict,int> Lecteur::importIndex(const string& chemin){
+
+//Moteur
+Moteur::Moteur(Index_* i, Analyseur_* a, const int m){
+    if(i==nullptr || a==nullptr) EXIT_FAILURE;
+    MAX_N=m;
+    analyseur = a;
+    index =i;
+}
+Moteur::Moteur(){}
+Moteur::~Moteur(){
+    delete analyseur;
+    delete index;
+}
+vector<Recherche> Moteur::rechercher(const vector<string>& recherche){
+    vector<Recherche> results;
+    for(string searchWord : recherche){
+        searchWord=lower(searchWord);
+        results.push_back(Recherche((*index)[searchWord]));
+        results.back().updateWithIDF(index->getNumberOfDocuments());
+        results.back().trier();
+    }
+    return results;
+}
+
+//Lecteur
+void Lecteur::importIndex(Index_* index,const string& chemin){
     ifstream file(chemin);
     string read;
     file>>read;
     file>>read;
-    int numberOfDocuments;
-    file>>numberOfDocuments;
+    int n;
+    file>>n;
+    index->setNumberOfDocuments(n);
 
+    unordered_map<string, vector<Occ> > dict;
     string word;
     string doc;
     int statistique;
     int state=1;
     
-    Dict dict;
     while(file>>read) switch(state){
         case 1 : {
             word=read;
@@ -201,7 +251,7 @@ pair<Dict,int> Lecteur::importIndex(const string& chemin){
             break;
         }
         case 4 : {
-            statistique=stoi(read);
+            statistique=stof(read);
             dict[word].push_back(Occ(doc,statistique));
             state++;
             break;
@@ -214,51 +264,81 @@ pair<Dict,int> Lecteur::importIndex(const string& chemin){
             break;
         }
     }
-    return pair<Dict,int>(dict,numberOfDocuments);
-}
-void Lecteur::ExportIndex(const IndexUnorderedMap& index,const string& chemin){
-    ofstream out(chemin);
-    out<<"IndexUnorderedMap"<<endl;
-    out<<index.numberOfDocuments<<endl;
-    for(auto entry : index.dict){
-        if(entry.second.size()>0){
-        out<<entry.first;
-        for(Occ occ : entry.second)
-            out<<" | "<<occ.getDoc()<<" "<<occ.getStat();
-        out<<" }"<<endl;
-        }
-    }
+    index->setDict(dict);
+    
+    return ;
 }
 
-//Moteur
-template<class I,class A> Moteur<I,A>::Moteur(const int m){MAX_N=5;}
-template<class I,class A> Moteur<I,A>::~Moteur(){}
-template<class I,class A> vector<Recherche> Moteur<I,A>::rechercher(const vector<string>& recherche){
-    vector<Recherche> results;
-    for(string searchWord : recherche){
-        searchWord=lower(searchWord);
-        results.push_back(Recherche(index[searchWord]));
-        results.back().updateWithIDF(index.getNumberOfDocuments());
-        results.back().trier();
-    }
-    return results;
+
+void Lecteur::exportIndex(Index_* index,const string& chemin){
+    ofstream fo(chemin);
+    string indexType=index->type;
+    if(indexType=="IndexUnorderedMap") fo << *dynamic_cast<IndexUnorderedMap*>(index);
+    else if(indexType=="IndexMap") fo << *dynamic_cast<IndexMap*>(index);
+    else if(indexType=="IndexUnorderedMap") fo << *dynamic_cast<IndexSet*>(index);
 }
 
-//ostream
+void Lecteur::exportMoteur(Moteur* moteur,const string& chemin){
+    ofstream fo(chemin);
+    string typeIndex=moteur->index->type;
+    string typeAnalyseur=moteur->analyseur->type;
+    
+    fo<<typeIndex<<endl<<typeAnalyseur<<endl;
+    if(typeIndex=="IndexUnorderedMap") fo << *dynamic_cast<IndexUnorderedMap*>(moteur->index);
+    else if(typeIndex=="IndexMap") fo << *dynamic_cast<IndexMap*>(moteur->index);
+    else if(typeIndex=="IndexUnorderedMap") fo << *dynamic_cast<IndexSet*>(moteur->index);
+
+    fo.close();
+}
+
+//stream
 ostream& operator<<(ostream& out,const Recherche& recherche){
     for(auto& item : recherche.recherche)
         out<<item.getStat()<<" "<<item.getDoc()<<endl;
     return out;
 }
 ostream& operator<<(ostream& out,const IndexUnorderedMap& index){
-    for(pair<string,vector<Occ> > entry : index.dict){
-        out<<entry.first<<endl;
-        for(Occ word :entry.second)
-        if(word.getStat()>5)
-            out<<word.getStat()<<"- "<<word.getDoc()<<endl;
-        out<<endl<<endl;
-    }
+    out<<index.getNumberOfDocuments()<<endl;
+    for(auto& entry : index.dict)
+        if(entry.second.size()>0){
+        out<<entry.first;
+        for(Occ occ : entry.second) 
+            out<<" | "<<occ.getDoc()<<" "<<occ.getStat();
+        out<<" }"<<endl;
+        }
     return out;
+}
+ofstream& operator<<(ofstream& out,const IndexUnorderedMap& index){
+    out<<index.getNumberOfDocuments()<<endl;
+    for(auto& entry : index.dict)
+        if(entry.second.size()>0){
+        out<<entry.first;
+        for(Occ occ : entry.second) 
+            out<<" | "<<occ.getDoc()<<" "<<occ.getStat();
+        out<<" }"<<endl;
+        }
+    return out;
+}
+ofstream& operator<<(ofstream& out,const IndexMap& index){
+    out<<index.getNumberOfDocuments()<<endl;
+    for(auto& entry : index.dict)
+        if(entry.second.size()>0){
+        out<<entry.first;
+        for(Occ occ : entry.second) 
+            out<<" | "<<occ.getDoc()<<" "<<occ.getStat();
+        out<<" }"<<endl;
+        }
+    return out;
+}
+ofstream& operator<<(ofstream& out,const IndexSet& index){
+    out<<index.getNumberOfDocuments();
+    for(auto& entry : index.dict)
+        if(entry.second.size()>0){
+        out<<entry.first;
+        for(Occ occ : entry.second) out<<" | "<<occ.getDoc()<<" "<<occ.getStat();
+        out<<" }"<<endl;
+    }
+    return out;    
 }
 
 #endif

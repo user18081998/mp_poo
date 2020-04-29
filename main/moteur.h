@@ -12,7 +12,6 @@
 #include<cmath>
 
 using namespace std;
-
 class Token{
     string word;
     float occ;
@@ -55,90 +54,125 @@ class Recherche{
 };
 
 class Index_{
+    protected :
+    virtual int setNumberOfDocuments(const int& i)=0;
     public :
-    // virtual ~Index_()=0;
+    virtual ~Index_()=0;
+    string type;
     virtual int size() const =0;
     virtual int getNumberOfDocuments() const=0;
+    virtual void setDict(const unordered_map<string, vector<Occ> >& map)=0;
     virtual void indexer(const vector<Token>& tokens,const string& filename) =0;
     virtual vector<Occ> operator[](const string& s) =0;
+
+    friend class Lecteur;
 };
 class IndexUnorderedMap : public Index_ {
     unordered_map<string, vector<Occ> > dict;
     int numberOfDocuments=0;
+    protected :
+    int setNumberOfDocuments(const int& i) override;
+    void setDict(const unordered_map<string, vector<Occ> >& d) override;
     public:
     IndexUnorderedMap();
     IndexUnorderedMap(const unordered_map<string, vector<Occ> >& s, const int& n);
     ~IndexUnorderedMap();
     IndexUnorderedMap& operator=(const IndexUnorderedMap& index);
-    int size() const ;
-    int getNumberOfDocuments() const ;
-    void indexer(const vector<Token>& tokens,const string& filename);
-    vector<Occ> operator[](const string& s);
+    int size() const override;
+    int getNumberOfDocuments() const override;
+    void indexer(const vector<Token>& tokens,const string& filename) override;
+    vector<Occ> operator[](const string& s) override;
 
     friend class Lecteur;
+    friend ofstream& operator<<(ofstream& out,const IndexUnorderedMap& index);
     friend ostream& operator<<(ostream& out,const IndexUnorderedMap& index);
 };
+
 class IndexSet : public Index_ {
     set<pair<string,vector<Occ> > > dict;
     int numberOfDocuments=0;
+    protected :
+    int setNumberOfDocuments(const int& i) override;
+    void setDict(const unordered_map<string, vector<Occ> >& d) override;
     public:
     IndexSet();
     IndexSet(const set<pair<string,vector<Occ> > >& s, const int& n);
     ~IndexSet();
-    int size() const;
-    int getNumberOfDocuments() const ;
-    void indexer(const vector<Token>& tokens,const string& filename);
-    vector<Occ> operator[](const string& s);
+    int size() const override;
+    int getNumberOfDocuments() const override;
+    void indexer(const vector<Token>& tokens,const string& filename) override;
+    vector<Occ> operator[](const string& s) override;
 
-    friend ostream& operator<<(ostream& out,const IndexSet& index);
+    friend class Lecteur;
+    friend ofstream& operator<<(ofstream& out,const IndexSet& index);
 };
 class IndexMap : public Index_{
     map<string,vector<Occ> > dict;
     int numberOfDocuments=0;
+    protected :
+    int setNumberOfDocuments(const int& i) override;
+    void setDict(const unordered_map<string, vector<Occ> >& d) override;
     public:
     IndexMap();
     IndexMap(const map<string,vector<Occ> > s, const int& n);
     ~IndexMap();
-    int size() const;
-    int getNumberOfDocuments() const;
-    void indexer(const vector<Token>& tokens,const string& filename);
-    vector<Occ> operator[](const string& s);
+    int size() const override;
+    int getNumberOfDocuments() const override;
+    void indexer(const vector<Token>& tokens,const string& filename) override;
+    vector<Occ> operator[](const string& s) override;
 
-    friend ostream& operator<<(ostream& out,const IndexMap& index);
+    friend class Lecteur;
+    friend ofstream& operator<<(ofstream& out,const IndexMap& index);
 };
 
 
 class Analyseur_{
+    public :
+    string type;
     virtual vector<Token> analyser(const vector<string>& text) =0;
 };
 class AnalyseurBinary : public Analyseur_{
+    public :
     AnalyseurBinary();
     ~AnalyseurBinary();
 
-    vector<Token> analyser(const vector<string>& text);    
+    vector<Token> analyser(const vector<string>& text) override;    
 };
 class AnalyseurWF : public Analyseur_{ // word frquency
     public:
     AnalyseurWF();
     ~AnalyseurWF();
 
-    vector<Token> analyser(const vector<string>& text);
+    vector<Token> analyser(const vector<string>& text) override;
 };
 class AnalyseurATF : public Analyseur_{ // augmented term frequency
     public:
     AnalyseurATF();
     ~AnalyseurATF();
 
-    vector<Token> analyser(const vector<string>& text);
+    vector<Token> analyser(const vector<string>& text) override;
+};
+class Moteur{
+    int MAX_N;
+    public :
+    Index_* index;
+    Analyseur_* analyseur;
+    pair<string,string> types;
+    Moteur(Index_* index, Analyseur_* analyseur, const int m=5);
+    Moteur();
+    ~Moteur();
+    vector<Recherche> rechercher(const vector<string>& recherche);
 };
 
 class Lecteur{
     public :
     vector<string> readFile(const string& chemin);
-    template<class Dict> pair<Dict,int> importIndex(const string& chemin);
-    void ExportIndex(const IndexUnorderedMap& index,const string& chemin);
+    void importIndex(Index_* index,const string& chemin);
+    // void exportIndex(Index_* index,const string& chemin);
+    void exportIndex(Index_* index,const string& chemin);
+    void exportMoteur(Moteur* moteur,const string& chemin);
 };
-
+/*
 template<class Index,class Analyseur> class Moteur{
     int MAX_N;
     public :
@@ -149,4 +183,5 @@ template<class Index,class Analyseur> class Moteur{
     Lecteur lecteur;
     vector<Recherche> rechercher(const vector<string>& recherche);
 };
+*/
 #endif
