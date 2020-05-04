@@ -7,23 +7,21 @@ main $PWD new /corpus/
 main $PWDsearch /query/
  ```
 **exemple** :
-<pre><font color="#8AE234"><b>ubuntu@shx</b></font>:<font color="#729FCF"><b>~/Desktop/mp_poo</b></font>$ ./mp.sh /home/ubuntu/Desktop/corpus/petit google
+<pre><font color="#8AE234"><b>ubuntu@shx</b></font>:<font color="#729FCF"><b>~/Desktop/cpp/mp</b></font>$ ./mp.sh /home/ubuntu/Desktop/corpus/petit search
 indexing...
 engine has a total of 43313 words
-and 118692 files.
+and 9892 files.
 saving changes...
 successfully saved changes to the engine
-Elapsed time: 64.6468 s
+Elapsed time: 22.9578 s
 loading engine ..
-The engine has 118692 documents.
-resultat pour google
-6.30719 /home/ahmed2/Desktop/corpus/petit/18096.txt
-6.30719 /home/ahmed2/Desktop/corpus/petit/11210.txt
-6.30719 /home/ahmed2/Desktop/corpus/petit/18096.txt
-6.30719 /home/ahmed2/Desktop/corpus/petit/18096.txt
-6.30719 /home/ahmed2/Desktop/corpus/petit/14149.txt
+The engine has 9892 documents.
+resultat pour 
+105.56 /home/ubuntu/Desktop/corpus/petit/14232.txt
+52.78 /home/ubuntu/Desktop/corpus/petit/10472.txt
+23.4578 /home/ubuntu/Desktop/corpus/petit/14126.txt
+17.5933 /home/ubuntu/Desktop/corpus/petit/18439.txt
+17.5933 /home/ubuntu/Desktop/corpus/petit/14068.txt
 
-Elapsed time: 11.8863 s
+Elapsed time: 1.71204 s
 </pre>
-
-
