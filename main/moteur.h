@@ -67,6 +67,7 @@ class Index_{
 
     friend class Lecteur;
 };
+
 class IndexUnorderedMap : public Index_ {
     unordered_map<string, vector<Occ> > dict;
     int numberOfDocuments=0;
@@ -75,8 +76,8 @@ class IndexUnorderedMap : public Index_ {
     void setDict(const unordered_map<string, vector<Occ> >& d) override;
     public:
     IndexUnorderedMap();
-    IndexUnorderedMap(const unordered_map<string, vector<Occ> >& s, const int& n);
-    ~IndexUnorderedMap();
+    IndexUnorderedMap(const unordered_map<string, vector<Occ> >& s,const int& i=0);
+    ~IndexUnorderedMap() override;
     IndexUnorderedMap& operator=(const IndexUnorderedMap& index);
     int size() const override;
     int getNumberOfDocuments() const override;
@@ -157,7 +158,6 @@ class Moteur{
     public :
     Index_* index;
     Analyseur_* analyseur;
-    pair<string,string> types;
     Moteur(Index_* index, Analyseur_* analyseur, const int m=5);
     Moteur();
     ~Moteur();

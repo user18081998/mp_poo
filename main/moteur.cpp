@@ -50,10 +50,10 @@ IndexUnorderedMap::IndexUnorderedMap(){
     numberOfDocuments=0;
     type="IndexUnorderedMap";
 }
-IndexUnorderedMap::IndexUnorderedMap(const unordered_map<string, vector<Occ> >& s, const int& n){
+IndexUnorderedMap::IndexUnorderedMap(const unordered_map<string, vector<Occ> >& s,const int& n){
     dict=s;
-    numberOfDocuments=n;
     type="IndexUnorderedMap";
+    numberOfDocuments=n;
 }
 IndexUnorderedMap::~IndexUnorderedMap(){}
 IndexUnorderedMap& IndexUnorderedMap::operator=(const IndexUnorderedMap& index){
@@ -72,6 +72,10 @@ void IndexUnorderedMap::indexer(const vector<Token>& tokens,const string& filena
     }
     numberOfDocuments++;
 }
+
+//unordered_map improved
+
+
 
 //map
 IndexMap::IndexMap(){type="IndexMap";numberOfDocuments=0;}

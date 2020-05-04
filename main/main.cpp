@@ -14,8 +14,6 @@ int main(int argc, char** argv){
     int state=-1;
     vector<string> arguments;
     for(int i=0;i<argc;i++) arguments.push_back((string) argv[i]);
-    //cout<<"received number of arguments : "<<argc<<" /// "<<arguments.size()<<endl;
-    //for(auto element : arguments) cout<<element<<endl<<endl;
     
     string PWD=arguments[1];
 
@@ -62,13 +60,13 @@ int main(int argc, char** argv){
     if(state==1){
         //construire une liste des fichiers a indexer
         string filename;
-        vector<string> fileList;
+        set<string> fileList;
         ifstream ff(PWD+"/fileList.txt");
-        while( ff >> filename) fileList.push_back(arguments[3]+"/"+filename);
+        while( ff >> filename) fileList.insert(arguments[3]+"/"+filename);
 
         cout<<"indexing..."<<endl;
 
-        for(string& chemin : fileList){
+        for(string chemin : fileList){
             vector<string> texte=lecteur.readFile(chemin);
             vector<Token> tokens=moteur->analyseur->analyser(texte);
             moteur->index->indexer(tokens,chemin);
