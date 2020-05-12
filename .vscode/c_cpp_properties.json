@@ -1,0 +1,33 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "/home/ahmed2/anaconda3/bin/clang"
+        },
+        {
+            "name": "boost",
+            "includePath" : [
+                "${workspaceFolder}/**",
+                "/usr/include",
+                "/usr/include/**"
+            ],
+            "defines" : [],
+            "intelliSenseMode": "clang-x64",
+            "browse" : {
+                "path": [
+                    "${workspaceFolder}/**",
+                    "/usr/include",
+                    "/usr/include/**"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            },
+            "compilerPath" : "/usr/bin/g++"
+        }
+    ],
+    "version": 4
+}
