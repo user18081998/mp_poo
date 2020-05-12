@@ -1,14 +1,16 @@
 # mp_poo
 le travail est realise par **Lobna Channoufi** et **Ahmed Mustapha Ghanmi** de la **1AInfo2**
 
-**COMMANDS** :  new, search, addFile, printFileList
-**options** :   -it x   : use x as index
-            -ai x   : use x as analyzer
-            -s q    : search query
-            -f f    : argument f is a file
-            -d d    : argument d is a directory
+### COMMANDS :
+```new```, ```search```, ```addFile```, ```printFileList```
+### options :
+* ```-it x``` : use x as index
+* ```-ai x``` : use x as analyzer
+* ```-s q```  : search query
+* ```-f f```  : argument f is a file
+* ```-d d```  : argument d is a directory
 
-**exemple** :
+### example :
 
 <pre><font color="#8AE234"><b>ahmed2@shx</b></font>:<font color="#729FCF"><b>~/Desktop/mp_poo</b></font>$ ./main.out new -d /home/ahmed2/Desktop/corpus/petit -at AnalyzerWF -it IndexUmap -s tinnitus
 
