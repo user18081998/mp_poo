@@ -2,7 +2,7 @@
 le travail est realise par **Lobna Channoufi** et **Ahmed Mustapha Ghanmi** de la **1AInfo2**. 
 
 ### RAPPORT 
-https://docs.google.com/document/d/1PffFcl_XVbaBO-rSTbF8b21WahLKdXRLkR-s4goxa3s/edit
+https://docs.google.com/document/d/1PffFcl_XVbaBO-rSTbF8b21WahLKdXRLkR-s4goxa3s/edit?usp=sharing
 
 ### COMMANDS :
 ```new```, ```search```, ```addFile```, ```printFileList```
